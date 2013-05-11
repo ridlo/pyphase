@@ -1,0 +1,7 @@
+file_names.data
+input_scf_Si.data
+uc 5.0 5.25 0.025
+    unit_cell{
+       a_vector =  0.0000000000        uc        uc
+       b_vector =  uc        0.0000000000        uc
+       c_vector =  uc        uc        0.0000000000
