@@ -1,11 +1,15 @@
 #!/usr/bin/python -tt
-# author: ridlo w. wibowo
+__author__ = 'ridlo w. wibowo'
+__copyright__ = 'ridlo.w.wibowo@gmail.com'
+__date__ = '13/05/13'
 
 import sys
 import os
 import shutil
+import commands
 
 def read_inputfile(ifile):
+    """ read input file, restricted format"""
     try:
         os.path.isfile(ifile)
     except:
@@ -15,6 +19,7 @@ def read_inputfile(ifile):
     with open(ifile, 'r') as f:
         file_names = f.readline().strip()
         file_input = f.readline().strip()
+        case       = f.readline().strip()
         params = f.readline().strip().split()
         par = params[0]
         mi  = float(params[1])
@@ -25,13 +30,14 @@ def read_inputfile(ifile):
         for line in f:
             lines.append(line)
 
-    return [file_names, file_input, par, mi, mx, ic, change_after, lines]
+    return [file_names, file_input, case, par, mi, mx, ic, change_after, lines]
 
-def scf_copier(ifile, case):
+def scf_copier(ifile):
+    """ generate folder, copy input file and modify it"""
     data = read_inputfile(ifile)
-    file_names = data[0]; file_input = data[1]
-    par = data[2]; mi = data[3]; mx = data[4]; ic = data[5]
-    change_after = data[6]; lines = data[7]
+    file_names = data[0]; file_input = data[1]; case = data[2]
+    par = data[3]; mi = data[4]; mx = data[5]; ic = data[6]
+    change_after = data[7]; lines = data[8]
     
     val = mi; softening = 0.000001
     mx = mx + softening
@@ -74,22 +80,93 @@ def scf_copier(ifile, case):
         os.chdir('../')
         val += ic
 
-#def run_program()
+def run_program(ifile):
+    """running program on each subdirectory"""
+    print 'Using parallel computer?'
+    ans = raw_input('(Y/N) [N]: ')
+    
+    data = read_inputfile(ifile)
+    case = data[2]; mi = data[4]; mx = data[5]; ic = data[6]
+    
+    if (ans == '' or ans == 'N' or ans == 'n'):
+        print 'Where is your executable phase program?'
+        srcFile = raw_input("(absolute path or relative to SUBDIR): ")
 
-#def olah() 
+        val = mi; softening = 0.000001
+        mx = mx + softening
+        while val <= mx:
+            d = case+'_%g' % val
+            os.chdir(d); print 'open dir ', d
+            os.symlink(srcFile, './phase'); print 'make soft link here', srcFile
+            cmd = './phase'
+            print 'running PHASE'
+            failure, output = commands.getstatusoutput(cmd);
+            if failure:
+                print 'running PHASE program is failed\n%s\n%s' % \
+                (cmd, output); sys.exit(1)
+
+            os.chdir('../'); print 'back to', os.getcwd()
+            val += ic
+
+    elif (ans == 'Y' or ans == 'y'):
+        print 'Where is your jobfile (qsub)?'
+        srcFile = raw_input("(absolute path or relative to SUBDIR): ")
+
+        val = mi; softening = 0.000001
+        mx = mx + softening
+        while val <= mx:
+            d = case+'_%g' % val
+            os.chdir(d); print 'open dir ', d
+            os.symlink(srcFile, './parallel.sh'); print 'make soft link here', srcFile
+            cmd = 'qsub parallel.sh'
+            print 'running PHASE in parallel'
+            failure, output = commands.getstatusoutput(cmd)
+            if failure:
+                print 'running PHASE program using parallel is failed\n%s\n%s' % \
+                (cmd, output); sys.exit(1)
+            os.chdir('../'); print 'back to', os.getcwd()
+            val += ic
+
+    else:
+        print "Your answer is cute,  exit" 
+        sys.exit(1)
+
+def run(ifile):
+    """ run PHASE program or not? """
+    print "Run program on each subdirectory?"
+    ans = raw_input('(Y/N) [Y]: ')
+    
+    if ans == '' or ans == 'Y' or ans == 'y':
+        run_program(ifile)
+    elif ans == 'N' or ans == 'n':
+        print 'Ok, fighting!'; sys.exit(1)
+    else:
+        print "Your answer is weird..."; run(ifile)
+
            
 if __name__ == '__main__':
-    try:
-        scf_copier(sys.argv[1], sys.argv[2])
-    except:
-        print "Error: no input\n"
-        print "Usage: ", sys.argv[0], " <file input> <subdir firstname>"
-        example_file = """file_names.data
+    example_file = """file_names.data
 input_scf_Si.data
+scf_tmp_lv
 uc 5.0 5.26 0.025
     unit_cell{
        a_vector =  0.0000000000        uc        uc
        b_vector =  uc        0.0000000000        uc
        c_vector =  uc        uc        0.0000000000"""
-        print "Example of file input:"
-        print example_file
+    
+    usage = "USAGE    : "+ sys.argv[0] +" <file input>"
+    
+    print "--- Lattice Optimization Script ---"
+    print "make sure you have change 'file_names.data' and make inputfile for this script"
+    # read input file and make clone
+    if len(sys.argv) > 1:     
+        try:        
+            scf_copier(sys.argv[1])
+        except:
+            print 'error in inputfile'; print example_file; sys.exit(1)
+    else:
+        print 'Error: no input file\n'
+        print usage; print example_file; sys.exit(1)
+    
+    # if you need to run PHASE program
+    run(sys.argv[1])
