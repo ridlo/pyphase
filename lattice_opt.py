@@ -144,6 +144,4 @@ if __name__ == '__main__':
     if fit == 'q' or fit == 'Q' or fit == 'quadratic':
         quadratic(ofile, plt)
         print "See 'fit.log' and/or 'lattice_opt.png'... have a nice day!"
-        print "Optimum value: ", read_opt('lattice_opt_quadratic.data')
-
-        
+        print "Optimum value: ", read_opt('lattice_opt_quadratic.data') 
