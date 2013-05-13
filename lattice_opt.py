@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 Q   quadratic
                 M   Murnaghan       [N/A]
                 BM  Birch-Murnaghan [N/A]           
-    Example : python """+ sys.argv[0]+""" -d scf_tmp_lv 5 5.25 0.025 -ifile nfefn.data -ofile lattice_opt.txt -fit q -plot"""
+    Example : python """+ sys.argv[0]+""" -d scf_tmp_lv -m 5 5.25 0.025 -ifile nfefn.data -ofile lattice_opt.txt -fit q -plot"""
     
     if len(sys.argv) == 1:
         print usage
