@@ -19,8 +19,8 @@ def read_iter(case, mi, mx, ic, ifilename, ofilename):
     """iteration of reading nfefn.data in subdir and write it on file"""
     f = open(ofilename, 'w')
     mi = float(mi); mx = float(mx); ic = float(ic)
-    val = mi
-    mx = mx+ic
+    val = mi; softening = 0.000001
+    mx = mx+softening
     while val <= mx:
         ifile = '%s_%g/' % (case, val) + ifilename
         print "read ", ifile
@@ -84,7 +84,7 @@ ti = sprintf("f(x) = %.3fx**2 + %.3fx + %.3f", c, b, a)
     
 #------------- 2. Murnaghan, and Birch-Murnaghan [N/A]
 
-def read_opt(ifile)
+def read_opt(ifile):
     # read ifile
     f = open(ifile, 'r')
     f.readline()      # read header
